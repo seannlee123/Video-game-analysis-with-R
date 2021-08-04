@@ -1,13 +1,281 @@
-Version: 1.0
+---
+title: "R Notebook"
+output: html_notebook
+---
+---
+title: "Untitled"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
 
-RestoreWorkspace: Default
-SaveWorkspace: Default
-AlwaysSaveHistory: Default
+```{r}
+library(dplyr)
+library(readr)
+videogamesales <- read_csv("C:/Users/seann/Downloads/Video_Games_Sales_as_at_22_Dec_2016 .csv")
+View(videogamesales)
+glimpse(videogamesales)
+```
+```{r}
+summary(videogamesales)
+summary(videogamesales1)
 
-EnableCodeIndexing: Yes
-UseSpacesForTab: Yes
-NumSpacesForTab: 2
-Encoding: UTF-8
+```
 
-RnwWeave: Sweave
-LaTeX: pdfLaTeX
+
+
+```{r}
+library(tidyverse)
+#To factorize platform
+videogamesales$Platform= as.factor(videogamesales$Platform)
+videogamesales$Platform
+```
+```{r}
+#to omit na's in platform column
+videogamesales %>%
+  select(Platform)%>%
+  na.omit()
+```
+
+```{r}
+#factorize Developer
+videogamesales$Developer= as.factor(videogamesales$Developer)
+videogamesales$Developer
+view(videogamesales$Developer)
+
+```
+```{r}
+#convert genre to factor
+videogamesales$Genre= as.factor(videogamesales$Genre)
+videogamesales$Genre
+na.omit("Misc")
+```
+
+```{r}
+#viewed Developers and contained NA. We will need to remove that 
+#I select important columns 
+videogamesales1 = videogamesales %>%
+  select(Platform,Developer,Name, NA_Sales, EU_Sales, JP_Sales, Other_Sales, Global_Sales, Genre)%>%
+  na.omit() 
+view(videogamesales1)
+```
+
+
+```{r}
+#finding total sales for Developer
+Developer_sales = videogamesales1[1:100,]%>%
+  group_by(Developer, Platform)%>%
+  summarize(NAtotal =max(NA_Sales))%>%
+ggplot(aes(NAtotal, Developer, color = Platform))+geom_point()
+ Developer_sales
+ 
+ 
+ 
+#we can see that Nintendo is the highest sale developer and platform 
+ #JP
+ Developer_sales1 = videogamesales1[1:100,]%>%
+  group_by(Developer, Platform)%>%
+  summarize(JPtotal =max(JP_Sales))%>%
+ggplot(aes(JPtotal, Developer, color = Platform))+geom_point()
+  Developer_sales1
+#Global
+ Developer_sales2 = videogamesales1[1:100,]%>%
+  group_by(Developer, Platform)%>%
+  summarize(GBtotal =max(Global_Sales))%>%
+ggplot(aes(GBtotal, Developer, color = Platform))+geom_point()
+  Developer_sales2  
+  
+```
+
+```{r}
+#finding total sales for platform + Genre in NA
+Platform_sales = videogamesales1%>%
+  group_by(Platform, Genre)%>%
+  summarize(NAtotal = sum(NA_Sales))%>%
+ggplot(aes(NAtotal,Platform, color = Genre))+ geom_point()
+
+Platform_sales
+#JP sales
+Platform_JPsales = videogamesales1%>%
+  group_by(Platform, Genre)%>%
+  summarize(JPtotal = sum(JP_Sales))%>%
+ggplot(aes(JPtotal,Platform, color = Genre))+ geom_point()
+
+Platform_JPsales 
+#GB sales
+Platform_GBsales = videogamesales1%>%
+  group_by(Platform, Genre)%>%
+  summarize(GBtotal = sum(Global_Sales))%>%
+ggplot(aes(GBtotal,Platform, color = Genre))+ geom_point()
+
+Platform_GBsales 
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(broom)
+library(ggplot2)
+library(dplyr)
+
+```
+
+```{r}
+colnames(videogamesales1)
+
+###########################
+colnames(videogamesales)
+##barchat is for categorical R
+
+# genre vs global sale
+videogamesales %>% 
+  ggplot(aes(Genre, Global_Sales))+geom_bar(stat = "identity")
+
+#genre vs NA sale
+videogamesales %>% 
+  ggplot(aes(Genre, NA_Sales))+geom_bar(stat = "identity")
+#genre vs EU sale
+videogamesales %>% 
+  ggplot(aes(Genre, EU_Sales))+geom_bar(stat = "identity")
+#genre vs JP sales
+videogamesales %>% 
+  ggplot(aes(Genre, JP_Sales))+geom_bar(stat = "identity")
+#genre vs other_sales
+videogamesales %>% 
+  ggplot(aes(Genre, Other_Sales))+geom_bar(stat = "identity")
+
+#Majority of sales based on genre are Action, Sports, and spots as top 3)
+
+
+```
+```{r}
+#test to filter specified row
+#set to less to specify name and genre in NA sales. 
+new_df <- videogamesales[1:50,]
+new_df %>% 
+  ggplot(aes(NA_Sales,Name, group = Genre, color = Genre ))+geom_point()+expand_limits(y=0)
+
+new_df %>% 
+  ggplot(aes(Global_Sales,Name, group = Genre, color = Genre ))+geom_point()+expand_limits(y=0)
+
+new_df %>% 
+  ggplot(aes(JP_Sales,Name, group = Genre, color = Genre ))+geom_point()+expand_limits(y=0)
+
+new_df %>% 
+  ggplot(aes(EU_Sales,Name, group = Genre, color = Genre ))+geom_point()+expand_limits(y=0)
+
+
+
+
+```
+
+
+```{r}
+head(videogamesales1)
+```
+```{r}
+#split to 80 by 20% ()
+ind <- sample(2, nrow(videogamesales1), replace = TRUE, prob = c(0.8, 0.2))
+traindata <- videogamesales1[ind==1,]
+testdata <- videogamesales1[ind==2,]
+
+head(traindata)
+head(testdata)
+
+```
+```{r}
+#prediction
+results1 <- lm(NA_Sales~Platform,traindata)
+summary(results1)
+
+```
+```{r}
+results1$coefficients
+```
+```{r}
+#prediction on test
+pred <- predict(results1, newdata = testdata)
+head(pred)
+head(testdata)
+```
+```{r}
+formula1 = NA_Sales ~ Genre
+lm1 = lm(formula1, data = traindata)
+tidy1 = tidy(lm1)
+tidy1$formula = as.character(formula1)
+tidy1
+```
+```{r}
+gl1 = glance(lm1)
+gl1$formula = as.character(formula1)
+gl1
+```
+
+```{r}
+testdata$pred1 = predict(lm1,newdata = testdata)
+```
+```{r}
+RMSE = function(actual, predicted){
+  
+  Residual = actual - predicted
+  result = sqrt(mean(Residual^2))
+  return(result)
+}
+
+gl1$test_RMSE = RMSE(testdata$NA_Sales,testdata$pred1)
+gl1
+```
+
+
+```{r}
+formula2 = NA_Sales ~ Platform
+lm2 = lm(formula2, data = traindata)
+tidy2 = tidy(lm2)
+tidy2$formula = as.character(formula2)
+tidy2
+```
+```{r}
+gl2 = glance(lm2)
+gl2$formula = as.character(formula2)
+gl2
+```
+```{r}
+testdata$pred2 = predict(lm2,newdata = testdata)
+
+gl2$test_RMSE = RMSE(testdata$NA_Sales,testdata$pred2)
+```
+
+```{r}
+formula3 = NA_Sales ~ Platform+Genre
+lm3 = lm(formula3, data = traindata)
+tidy3 = tidy(lm3)
+tidy3$formula = as.character(formula3)
+tidy3
+```
+
+```{r}
+gl3 = glance(lm3)
+gl3$formula = as.character(formula3)
+testdata$pred3 = predict(lm3,newdata = testdata)
+
+gl3$test_RMSE = RMSE(testdata$NA_Sales,testdata$pred3)
+
+
+
+gl3
+```
+
+```{r}
+MODELS = rbind(gl1,gl2,gl3) %>% 
+  select(formula,test_RMSE) %>% 
+  arrange(test_RMSE)
+
+MODELS
+```
+
+```{r}
+
+```
+
